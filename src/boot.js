@@ -1,0 +1,1 @@
+document.documentElement.classList.add("fi-intro-pending");window.__fiatIntroStarted=performance.now();setTimeout(()=>document.documentElement.classList.remove("fi-intro-pending"),4200);

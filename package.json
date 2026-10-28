@@ -1,0 +1,16 @@
+{
+  "name": "fiat-agua-em-ciclo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Experiência interativa narrada do ciclo industrial da água.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "build": "node scripts/build.mjs",
+    "predev": "node scripts/build.mjs",
+    "dev": "node scripts/serve.mjs"
+  }
+}

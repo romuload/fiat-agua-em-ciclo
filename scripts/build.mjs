@@ -1,0 +1,11 @@
+import { mkdir, copyFile, cp, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const dist=path.join(root,'dist');
+await mkdir(path.join(dist,'assets'),{recursive:true});
+await copyFile(path.join(root,'src/index.html'),path.join(dist,'index.html'));
+for(const name of ['styles.css','boot.js','intro.js','app.js'])await copyFile(path.join(root,'src',name),path.join(dist,'assets',name));
+await cp(path.join(root,'assets'),path.join(dist,'assets'),{recursive:true});
+await writeFile(path.join(dist,'.nojekyll'),'');
+console.log('Site gerado em dist/.');
