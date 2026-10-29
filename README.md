@@ -8,7 +8,9 @@ Experiência interativa sobre o ciclo industrial da água, com abertura FIAT cro
 - Narração de aproximadamente 68 segundos; o áudio controla o tempo da animação.
 - Close da fábrica desde o primeiro quadro, seguido de tanques, filtração, membranas, reúso e acompanhamento ambiental.
 - Visão completa do circuito somente no encerramento.
-- Zoom uniforme, arrasto, capítulos, pausa, retomada, reinício, controles de voz e trilha.
+- Cena 3D em tempo real (Three.js) exportada do Blender: câmera cinematográfica com roteiro plano a plano, aceleração variável, arcos de grua, inclinação nos deslocamentos e ênfases sincronizadas às frases da narração.
+- Destaque da etapa ativa (o restante da cena escurece), água em shader (turbidez, varredura de purificação, aeração, ondulações), fluxos luminosos nos tubos, vapor, peixes, trabalhador carregando caixas, membranas pulsando e árvores ao vento.
+- Arrastar para girar, pinça/ctrl+roda para zoom, toque/clique para aproximar, capítulos, pausa, retomada, reinício, controles de voz e trilha.
 - Layout adaptável e respeito à preferência por movimento reduzido.
 
 O navegador tenta iniciar voz e animação após a abertura. Se a política de áudio automático exigir interação, ambas aguardam o botão **Iniciar com áudio**.
@@ -38,9 +40,13 @@ src/
   styles.css       Estilos da página e do loading
   boot.js          Inicialização da abertura
   intro.js         Encerramento do loading
-  app.js           Áudio, câmera e animação
+  app.js           Narração, capítulos, controles e gestos
+  scene3d.js       Motor 3D: câmera, luz, materiais, água, fluxos e partículas
 assets/
-  illustration.png Arte-base derivada da referência aprovada
+  scene.glb        Cena 3D exportada do Blender (Draco)
+  scene_data.json  Caminhos dos tubos e limites de cada equipamento
+  vendor/three/    Three.js 0.170 (MIT) e decodificador Draco, servidos localmente
+  illustration.webp Pôster e alternativa estática quando o WebGL não está disponível
   narration.mp3    Cinco gravações reunidas em uma faixa contínua
   fiat-logo.svg    Marca vetorial fornecida
 scripts/
@@ -55,6 +61,6 @@ O workflow `.github/workflows/pages.yml` verifica, compila e publica no GitHub P
 
 ## Alterar a experiência
 
-A câmera e os tempos dos capítulos estão em `src/app.js`. Os efeitos da abertura estão em `src/styles.css`. O áudio e a arte são recursos locais do projeto; não há chamadas a APIs, credenciais, serviços de voz ou arquivos do computador do autor.
+O roteiro de câmera (planos, transições e ênfases) fica no topo de `src/scene3d.js`; os tempos dos capítulos, em `src/app.js`. Os efeitos da abertura estão em `src/styles.css`. O áudio e a arte são recursos locais do projeto; não há chamadas a APIs, credenciais, serviços de voz ou arquivos do computador do autor.
 
-A ilustração de base é raster e mantém o acabamento da referência; as sobreposições de animação e o logo do loading são SVG. A resolução da imagem limita a nitidez em ampliações grandes. O modelo é ilustrativo: níveis e tempos não são parâmetros operacionais de uma estação de tratamento.
+A ilustração de base é um render 3D feito no Blender, em resolução 2× para telas de alta densidade; as sobreposições de animação, legendas e setas são SVG. A câmera mede o tamanho real do palco, então a maquete se ajusta à altura da tela do notebook e ganha mais espaço vertical no celular. O modelo é ilustrativo: níveis e tempos não são parâmetros operacionais de uma estação de tratamento.
