@@ -17,7 +17,7 @@ function bezier(x1,y1,x2,y2){ // CSS-like cubic-bezier easing
  const sx=t=>((ax*t+bx)*t+cx)*t,sy=t=>((ay*t+by)*t+cy)*t,dx=t=>(3*ax*t+2*bx)*t+cx;
  return x=>{if(x<=0)return 0;if(x>=1)return 1;let t=x;for(let i=0;i<6;i++){const e=sx(t)-x;const d=dx(t);if(Math.abs(e)<1e-5||!d)break;t-=e/d}return sy(clamp01(t))};
 }
-const EASE={cine:bezier(.62,0,.18,1),slowout:bezier(.3,0,.1,1),snap:bezier(.75,0,.12,1)};
+const EASE={cine:bezier(.5,0,.25,1),slowout:bezier(.3,0,.1,1),snap:bezier(.75,0,.12,1)};
 
 // ---------- Roteiro de câmera (segundos da narração) ----------
 // Cada plano: alvo, raio de enquadramento, azimute, elevação, lente (fov vertical), rolagem (dutch) e deriva no hold.
@@ -41,16 +41,16 @@ const SHOTS={
 const TIMELINE=[
  {at:0,dur:0,shot:'factory_open'},
  {at:.35,dur:3.7,shot:'factory',ease:'slowout'},
- {at:4.3,dur:1.3,shot:'chem',path:'Tubo_Fabrica_Quimico',crane:.14},
- {at:9.7,dur:1.05,shot:'bio',crane:.1},
- {at:15.95,dur:1.5,shot:'chem_macro',crane:.12},
+ {at:4.3,dur:1.8,shot:'chem',path:'Tubo_Fabrica_Quimico',crane:.14},
+ {at:9.7,dur:1.8,shot:'bio',crane:.1},
+ {at:15.95,dur:1.9,shot:'chem_macro',crane:.12},
  {at:22.25,dur:2.3,shot:'tanks_pull',ease:'slowout'},
  {at:26.1,dur:2.5,shot:'filter',path:'Tubo_Quimico_Filtro1',crane:.16},
- {at:30.05,dur:1.15,shot:'membrane',path:'Tubo_Filtro1_Filtro2',crane:.08},
+ {at:30.05,dur:1.8,shot:'membrane',path:'Tubo_Filtro1_Filtro2',crane:.08},
  {at:38.2,dur:4.7,shot:'storage',path:'Tubo_Retorno_Longo',crane:.42},
- {at:46.3,dur:1.35,shot:'factory_reuse',path:'Tubo_Reservatorio_Fabrica',crane:.1},
- {at:48.5,dur:1.6,shot:'network',crane:.22},
- {at:52.45,dur:1.7,shot:'lake',path:'Tubo_Lago',crane:.18},
+ {at:46.3,dur:1.8,shot:'factory_reuse',path:'Tubo_Reservatorio_Fabrica',crane:.1},
+ {at:48.5,dur:1.9,shot:'network',crane:.22},
+ {at:52.45,dur:2.0,shot:'lake',path:'Tubo_Lago',crane:.18},
  {at:58.3,dur:4.4,shot:'overview',crane:.22,ease:'slowout'}
 ];
 // Ênfases curtas (punch-in) nas palavras-chave da fala, alinhadas às frases da narração.
@@ -271,12 +271,11 @@ export async function createEngine({canvas,stage,labelsEl,dataUrl,glbUrl,reduced
   p.r=Math.exp(lerp(Math.log(a.r),Math.log(b.r),e));p.ry=Math.exp(lerp(Math.log(a.ry),Math.log(b.ry),e));p.roll=lerp(a.roll,b.roll,e);p.drift=lerp(a.drift,b.drift,e);p.push=lerp(a.push,b.push,e);
   const arc=Math.sin(Math.PI*e)*((seg&&seg.crane)||0);p.el+=arc*30;p.r*=1+arc*1.1;p.ry*=1+arc*1.1;
   // pequeno "overshoot" de dolly na chegada
-  const os=1-.03*Math.sin(Math.PI*clamp01((q-.72)/.28));p.r*=os;p.ry*=os;
   p.focusA=a.focus;p.focusB=b.focus;p.focusQ=smooth((q-.25)/.6);return p}
  function tourPose(time){let i=0;for(let k=1;k<TIMELINE.length;k++)if(time>=TIMELINE[k].at)i=k;
   const seg=TIMELINE[i],prev=i?TIMELINE[i-1]:seg,next=TIMELINE[i+1];
   const holdStart=seg.at+seg.dur,holdEnd=next?next.at:holdStart+12;
-  let p;if(seg.dur&&time<holdStart){const prevPose=holdPose(poseOf(prev.shot),1,prev,time);p=blendPose(prevPose,poseOf(seg.shot),(time-seg.at)/seg.dur,seg)}
+  let p;if(seg.dur&&time<holdStart){const prevPose=holdPose(poseOf(prev.shot),1,prev,time);p=blendPose(prevPose,holdPose(poseOf(seg.shot),0,seg,time),(time-seg.at)/seg.dur,seg)}
   else{p=holdPose(poseOf(seg.shot),clamp01((time-holdStart)/Math.max(.001,holdEnd-holdStart)),seg,time);p.focusA=p.focusB=p.focus;p.focusQ=1}
   return p}
  function holdPose(p,q,seg,time){const e=EASE.slowout(q);p.r*=1-p.push*e;p.ry*=1-p.push*e;p.az+=p.drift*(e-.5)*.6;return p}
@@ -310,10 +309,10 @@ export async function createEngine({canvas,stage,labelsEl,dataUrl,glbUrl,reduced
   const right=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0);
   const lat=dt>0?vel.dot(right)/dt/Math.max(4,dist):0;const target=reduced?0:Math.max(-.05,Math.min(.05,-lat*.11))+p.roll*D2R;
   state.roll+=(target-state.roll)*(1-Math.exp(-dt/.28));camera.rotateZ(state.roll);
-  camera.fov=p.fov*(1-(reduced?0:.075*punch(state.t)));camera.updateProjectionMatrix();
+  camera.fov=p.fov;camera.updateProjectionMatrix();
   fogU.uFogNear.value=dist*1.35;fogU.uFogFar.value=dist*4.2;scene.fog.near=dist*1.35;scene.fog.far=dist*4.2;
   // foco do tilt-shift acompanha o alvo
-  const sp=p.t.clone().project(camera);post.uniforms.uFocusY.value=lerp(post.uniforms.uFocusY.value,clamp01(sp.y*.5+.5),.2);
+  const sp=p.t.clone().project(camera);post.uniforms.uFocusY.value=lerp(post.uniforms.uFocusY.value,clamp01(sp.y*.5+.5),1-Math.exp(-dt/.12));
   const close=clamp01((14-p.r)/11)*(p.r<2.6?.75:1);post.uniforms.uBlur.value=reduced?0:(mobile?.5:.85)*(.15+close*.7);post.uniforms.uBand.value=.2+(1-close)*.22;
   return dist}
 

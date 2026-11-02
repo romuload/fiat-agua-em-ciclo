@@ -51,7 +51,10 @@ function updateUI(){
  const w=$('#word');if(w.textContent!==word){w.textContent=word;w.classList.remove('pop');void w.offsetWidth;if(word)w.classList.add('pop')}w.style.opacity=word?'1':'0';
  audioStep();
 }
-function loop(now){frame=0;const dt=last?Math.min(window.__ETA_DT_MAX||.05,(now-last)/1000):.016;last=now;if(playing)t=Math.min(DURATION,narration.currentTime);
+function loop(now){frame=0;const real=last?Math.min(.25,(now-last)/1000):.016,dt=Math.min(window.__ETA_DT_MAX||.05,real);last=now;
+ if(playing){// relógio suave: avança pelo tempo real do quadro e só corrige devagar a deriva do áudio, que o navegador reporta aos saltos
+  const a=narration.currentTime;if(narration.paused||narration.seeking||narration.readyState<3)t=a;else{t+=real;const err=a-t;if(Math.abs(err)>.35)t=a;else t+=err*Math.min(1,real*1.5)}
+  t=Math.max(0,Math.min(DURATION,t))}
  updateUI();
  if(engine)engine.render(dt,{t,visual:visualAt(t),chapter:chapterAt(t),overview:!hasStarted&&t===0,labels:labelsVisible,hover});
  if(visible&&!document.hidden)frame=requestAnimationFrame(loop)}
