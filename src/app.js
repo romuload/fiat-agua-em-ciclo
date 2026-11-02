@@ -103,3 +103,13 @@ let introStarted=false;async function afterIntro(){if(introStarted)return;introS
 window.addEventListener('fiat:intro-complete',afterIntro,{once:true});if(window.__fiatIntroReady)setTimeout(afterIntro,0);
 window.waterDemo={seek:setTime,focus:explore,overview,zoom,pause,play:startPlayback,get time(){return t},get visualTime(){return visualAt(t)},get duration(){return DURATION},get chapters(){return META.chapters.map(c=>({start:c.start,duration:c.duration}))},get playing(){return playing},get focusName(){return focus},get audioTime(){return narration.currentTime},get blocked(){return !startGate.hidden},get ready(){return !!engine},get engine(){return engine}};
 run();
+
+// Tela cheia (Fullscreen API, com prefixo para Safari)
+const fsBtn=$('#fullscreen'),fsRoot=document.documentElement;
+const fsElement=()=>document.fullscreenElement||document.webkitFullscreenElement;
+if(!(document.fullscreenEnabled||document.webkitFullscreenEnabled))fsBtn.hidden=true;
+function toggleFullscreen(){if(fsElement()){(document.exitFullscreen||document.webkitExitFullscreen).call(document)}else{const req=fsRoot.requestFullscreen||fsRoot.webkitRequestFullscreen;if(req){const r=req.call(fsRoot);if(r&&r.catch)r.catch(()=>{})}}}
+function syncFullscreen(){const on=!!fsElement();fsBtn.setAttribute('aria-pressed',on);fsBtn.setAttribute('aria-label',on?'Sair da tela cheia':'Entrar em tela cheia');fsBtn.title=on?'Sair da tela cheia':'Tela cheia';fsBtn.textContent=on?'⤡':'⛶'}
+fsBtn.onclick=toggleFullscreen;
+document.addEventListener('fullscreenchange',syncFullscreen);document.addEventListener('webkitfullscreenchange',syncFullscreen);
+document.addEventListener('keydown',e=>{if((e.key==='f'||e.key==='F')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!e.target.closest('input,textarea,[contenteditable]')&&!fsBtn.hidden){e.preventDefault();toggleFullscreen()}});
